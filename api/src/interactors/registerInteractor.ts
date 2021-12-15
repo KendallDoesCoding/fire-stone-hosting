@@ -1,24 +1,24 @@
-
+import { createUserPersistence } from '../persistence/createUserPersistence';
 import { v4 as uuidv4 } from 'uuid';
+import { getPasswordHash } from '../lib/passwordEncryption';
 
 // const stripe = require('stripe')(process.env.STRIPE_KEY);
 
 const costPerGB = 3;
 
-import { ApplicationContext } from "../createApplicationContext";
-
 type Account = {
-  email: String;
-  password: String;
+  email: string;
+  password: string;
   passwordConfirm: String;
-}
+};
 
 type registerInteractorOptions = {
   account: Account;
-  applicationContext: ApplicationContext;
 };
 
-export const registerInteractor = async ({ applicationContext, account }: registerInteractorOptions) => {
+export const registerInteractor = async ({
+  account,
+}: registerInteractorOptions) => {
   if (!account.email) {
     throw new Error('You must provide an email.');
   }
@@ -31,12 +31,14 @@ export const registerInteractor = async ({ applicationContext, account }: regist
 
   const userId = uuidv4();
 
-  await applicationContext.persistence.createUser({
-    applicationContext,
+  const passwordHash = await getPasswordHash(account.password);
+
+  await createUserPersistence({
     user: {
       ...account,
       // stripeCustomerId: customer.id,
       id: userId,
+      password: passwordHash,
     },
   });
 };

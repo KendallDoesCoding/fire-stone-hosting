@@ -1,14 +1,14 @@
-import * as jwt from 'jsonwebtoken';
-import { plans } from '../data/plans';
-
 import { v4 as uuidv4 } from 'uuid';
 
 // const stripe = require('stripe')(process.env.STRIPE_KEY);
 
-import { ApplicationContext } from '../createApplicationContext';
+import { plans } from '../data/plans';
 import { getServersOnNodePersistence } from '../persistence/getServersOnNodePersistence';
 import { createUserPersistence } from '../persistence/createUserPersistence';
 import { createServerPersistence } from '../persistence/createServerPersistence';
+import { getNodesPersistence } from '../persistence/getNodesPersistence';
+import { setFreeMemoryOnNodePersistence } from '../persistence/setFreeMemoryOnNodePersistence';
+import { getSignedToken } from '../lib/jwt';
 
 type createAccountAndPurchaseServerInteractorOptions = {
   email: string;
@@ -16,11 +16,9 @@ type createAccountAndPurchaseServerInteractorOptions = {
   passwordConfirm: string;
   planId: string;
   source: string;
-  applicationContext: ApplicationContext;
 };
 
 export const createAccountAndPurchaseServerInteractor = async ({
-  applicationContext,
   email,
   password,
   passwordConfirm,
@@ -48,10 +46,10 @@ export const createAccountAndPurchaseServerInteractor = async ({
   };
 
   await createUserPersistence({
-    applicationContext,
     user,
   });
-  const token = jwt.sign(user, process.env.JWT_SECRET || 'testing');
+
+  const token = getSignedToken(user);
 
   // customer = await stripe.customers.create({
   //   email: user.email,
@@ -71,9 +69,7 @@ export const createAccountAndPurchaseServerInteractor = async ({
   //   ],
   // });
 
-  const nodes = await applicationContext.persistence.getNodes({
-    applicationContext,
-  });
+  const nodes = await getNodesPersistence();
 
   const memory = plan.memory;
   const desiredNode = nodes.find(node => true || node.freeMemory > memory); // TODO: remove true
@@ -83,7 +79,6 @@ export const createAccountAndPurchaseServerInteractor = async ({
   }
 
   const servers = await getServersOnNodePersistence({
-    applicationContext,
     nodeId: desiredNode.id,
   });
 
@@ -93,18 +88,17 @@ export const createAccountAndPurchaseServerInteractor = async ({
     freePort = ports[ports.length - 1] + 1;
   }
 
-  await applicationContext.persistence.setFreeMemoryOnNode({
-    applicationContext,
+  await setFreeMemoryOnNodePersistence({
     freeMemory: desiredNode.freeMemory - memory,
     nodeId: desiredNode.id,
   });
 
   await createServerPersistence({
-    applicationContext,
     server: {
       id: uuidv4(),
       nodeId: desiredNode.id,
       port: freePort,
+      version: '1.18.1',
       running: true,
       runBackup: false,
       restart: false,
