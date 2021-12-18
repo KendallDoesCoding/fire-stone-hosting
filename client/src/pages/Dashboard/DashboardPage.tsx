@@ -5,14 +5,14 @@ import React, {
 } from 'react';
 import { Outlet, useNavigate } from 'react-router-dom';
 import { SideNavigation } from './SideNavigation';
-import getServer from '../../http/getServer.http';
+import { getServerApi } from '../../api/getServerApi';
 import { useParams } from 'react-router-dom';
 import { Server } from '../../../../api/src/models/Server';
 import { AuthenticationContext } from '../../context/AuthenticationContext';
 import { Link } from 'react-router-dom';
 import { ServerContext } from './context/ServerContext';
 import { ServerNode } from '../../../../api/src/models/ServerNode';
-import getNode from '../../http/getNode.http';
+import { getNodeApi } from '../../api/getNodeApi';
 import { NodeContext } from './context/NodeContext';
 
 const DashboardPage = () => {
@@ -28,20 +28,15 @@ const DashboardPage = () => {
     if (!authentication.token) {
       navigate('/');
     }
-    const initialize = async () => {
-      const serverFromApi = await getServer({
-        serverId,
-      });
-      setServer(serverFromApi);
-    };
-
-    initialize();
-  }, []);
+    getServerApi({
+      serverId,
+    }).then((serverFromApi) => setServer(serverFromApi));
+  }, [authentication.token, navigate, setServer, serverId]);
 
   useEffect(() => {
     const run = async () => {
       if (!server) return;
-      const nodeReturned = await getNode({
+      const nodeReturned = await getNodeApi({
         nodeId: server.nodeId,
       });
       setNode(nodeReturned);

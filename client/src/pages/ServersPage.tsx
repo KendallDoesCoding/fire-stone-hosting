@@ -4,7 +4,7 @@ import React, {
   useState,
 } from 'react';
 import { Server } from '../../../api/src/models/Server';
-import getServersForUserHttp from '../http/getServersForUser.http';
+import { getServersForUserApi } from '../api/getServersForUserApi';
 import { useNavigate } from 'react-router-dom';
 import { AuthenticationContext } from '../context/AuthenticationContext';
 
@@ -18,16 +18,21 @@ const ServersPage = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    if (!authentication) {
+    if (!authentication?.token) {
       navigate('/');
     }
+
     const getServers = async () => {
       const serversForCurrentUser =
-        await getServersForUserHttp({ userId: userId! });
+        await getServersForUserApi({
+          userId: userId!,
+        });
+
       setServers(serversForCurrentUser);
     };
+
     getServers();
-  }, []);
+  }, [authentication?.token, userId, setServers, navigate]);
 
   const renderServerRow = (server: Server) => (
     <tr key={server.id}>

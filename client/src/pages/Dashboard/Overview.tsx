@@ -1,20 +1,14 @@
-import React, {
-  useContext,
-  useEffect,
-  useState,
-} from 'react';
-import getServer from '../../http/getServer.http';
-import deleteServerHttp from '../../http/deleteServer.http';
+import React, { useContext, useEffect } from 'react';
+import { getServerApi } from '../../api/getServerApi';
+import { deleteServerApi } from '../../api/deleteServerApi';
 import { useNavigate } from 'react-router-dom';
 import { AuthenticationContext } from '../../context/AuthenticationContext';
 import { useParams } from 'react-router-dom';
-import { Server } from '../../../../api/src/models/Server';
 
-import styled from 'styled-components';
-import stopServerHttp from '../../http/stopServer.http';
-import startServerHttp from '../../http/startServer.http';
+import { stopServerApi } from '../../api/stopServerApi';
+import { startServerApi } from '../../api/startServerApi';
 import { ServerContext } from './context/ServerContext';
-import restartServerHttp from '../../http/restartServer.http';
+import { restartServerApi } from '../../api/restartServerApi';
 
 export const Overview = () => {
   const params = useParams();
@@ -29,10 +23,7 @@ export const Overview = () => {
       'are you sure you want to delete this server?  all data will be lost'
     );
     if (yes) {
-      await deleteServerHttp(
-        serverId,
-        authentication.token
-      );
+      await deleteServerApi(serverId, authentication.token);
       navigate('/dashboard');
     }
   };
@@ -41,23 +32,16 @@ export const Overview = () => {
     if (!authentication.token) {
       navigate('/');
     }
-    const initialize = async () => {
-      const serverFromApi = await getServer({
-        serverId,
-      });
-      setServer(serverFromApi);
-    };
 
-    initialize();
-  }, []);
+    getServerApi({
+      serverId,
+    }).then((serverFromApi) => setServer(serverFromApi));
+  }, [authentication.token, navigate, setServer, serverId]);
 
   if (!server) return null;
 
   const stopServer = async () => {
-    await stopServerHttp(
-      { serverId },
-      authentication.token
-    );
+    await stopServerApi({ serverId }, authentication.token);
     setServer({
       ...server,
       running: false,
@@ -65,7 +49,7 @@ export const Overview = () => {
   };
 
   const restartServer = async () => {
-    await restartServerHttp(
+    await restartServerApi(
       { serverId },
       authentication.token
     );
@@ -76,7 +60,7 @@ export const Overview = () => {
   };
 
   const startServer = async () => {
-    await startServerHttp(
+    await startServerApi(
       { serverId },
       authentication.token
     );

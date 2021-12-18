@@ -3,16 +3,13 @@ import React, {
   useEffect,
   useState,
 } from 'react';
-import getServer from '../../http/getServer.http';
-import { useNavigate, useParams } from 'react-router-dom';
-import { Server } from '../../../../api/src/models/Server';
+
 import { NodeContext } from './context/NodeContext';
-import getServerConfiguration from '../../http/getServerConfiguration.http';
+import { getServerConfigurationApi } from '../../api/getServerConfigurationApi';
 import { ServerContext } from './context/ServerContext';
-import saveServerConfiguration from '../../http/saveServerConfiguration.http';
+import { saveServerConfigurationApi } from '../../api/saveServerConfigurationApi';
 
 const ConfigureServer = () => {
-  const navigate = useNavigate();
   const { node } = useContext(NodeContext)!;
   const { server } = useContext(ServerContext)!;
   const [values, setValues] = useState<{
@@ -21,10 +18,11 @@ const ConfigureServer = () => {
 
   useEffect(() => {
     if (!server || !node) return;
-    getServerConfiguration({
+    getServerConfigurationApi({
       nodeIp: node.ip,
       serverId: server.id,
     }).then((configuration) => {
+      // eslint-disable-next-line no-useless-escape
       configuration = configuration.replace(/\#.*\n/g, '');
       const values: {
         [key: string]: string;
@@ -44,7 +42,7 @@ const ConfigureServer = () => {
     const configuration = Object.entries(values)
       .map(([key, value]) => `${key}=${value}`)
       .join('\n');
-    await saveServerConfiguration({
+    await saveServerConfigurationApi({
       nodeIp: node!.ip,
       serverId: server!.id,
       configuration,
@@ -65,6 +63,7 @@ const ConfigureServer = () => {
         {Object.entries(values).map(([key, value]) => (
           <div className="col-md-4 mb-4">
             <div className="form-group">
+              {/* eslint-disable-next-line no-useless-escape */}
               <label>{key.replace(/\-/g, ' ')}</label>
               <input
                 className="form-control"

@@ -1,7 +1,7 @@
 import React, { useContext, useState } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { useNavigate } from 'react-router-dom';
-import loginProxy from '../http/login.http';
+import { loginApi } from '../api/loginApi';
 import { AuthenticationContext } from '../context/AuthenticationContext';
 
 const LoginPage = () => {
@@ -15,7 +15,7 @@ const LoginPage = () => {
     password: '',
   });
 
-  const { authentication, setAuthentication } = useContext(
+  const { setAuthentication } = useContext(
     AuthenticationContext
   )!;
 
@@ -33,7 +33,7 @@ const LoginPage = () => {
   };
 
   const login = async () => {
-    const { token, user } = await loginProxy({
+    const { token, user } = await loginApi({
       ...form,
     });
     setAuthentication({

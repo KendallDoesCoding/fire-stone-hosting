@@ -2,7 +2,7 @@ import React, { useContext, useState } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { Plan, plans } from '../data/plans';
 import { useNavigate, useParams } from 'react-router-dom';
-import purchaseServerHttp from '../http/purchaseServer.http';
+import { purchaseServerApi } from '../api/purchaseServerApi';
 import { AuthenticationContext } from '../context/AuthenticationContext';
 import { ConfigurationContext } from './Dashboard/context/ConfigurationContext';
 
@@ -25,7 +25,7 @@ export const RentAnotherDetailsPage = () => {
   )!;
 
   const handleSubmit = async () => {
-    await purchaseServerHttp(
+    await purchaseServerApi(
       planId,
       configuration,
       authentication!.token
@@ -46,6 +46,7 @@ export const RentAnotherDetailsPage = () => {
               <img
                 src={plan.imageSrc}
                 style={{ width: '30px' }}
+                alt="plan-cover"
               />{' '}
               {plan.name}, {plan.memory} GB, ${' '}
               {(plan.memory * 3).toFixed(2)} / month
